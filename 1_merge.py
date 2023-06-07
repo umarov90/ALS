@@ -31,6 +31,9 @@ for index, row in df.iterrows():
     elif len(info) == 4:
         adata.obs['treatment'] = info[2]
         adata.obs['GEM'] = info[3]
+    else:
+        adata.obs['treatment'] = "na"
+        adata.obs['GEM'] = "na"
 
     adata.obs['sample_id'] = row["sample_id"]
     adata.obs_names = row['sample_id'] + '_' + adata.obs_names.str.strip('-1')
@@ -46,6 +49,10 @@ adata = adata[adata.obs['sample_id'].isin(
     adata.obs.value_counts('sample_id')[adata.obs.value_counts('sample_id') > 1000].index
 ), :]
 print("Filtered")
+# adata_n = ad.read_h5ad(p.file_path)
+# adata_n.obs["treatment"] = adata.obs["treatment"]
+# adata_n.obs["GEM"] = adata.obs["GEM"]
+# adata_n.write(p.file_path)
 print("Starting variable genes")
 sc.pp.highly_variable_genes(
     adata,

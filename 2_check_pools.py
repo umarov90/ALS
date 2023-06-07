@@ -18,12 +18,8 @@ for i in range(pool_num):
         print()
         pools.setdefault(str(i+1), []).append(geno_id)
 
-print(adata.shape)
-print(adata.raw.shape)
 chunk_size = 100000
 chunks = [adata[i:i+chunk_size].copy() for i in range(0, len(adata), chunk_size)]
-print(chunks[0].shape)
-print(chunks[0].raw.shape)
 unique_pools = list(adata.obs['pool'].unique())
 del adata
 gc.collect()
@@ -36,8 +32,6 @@ for pool_id in unique_pools:
         print(f"{pool_id} removed {start_n - len(chunks[i])}")
 
 adata = ad.concat(chunks)
-print(adata.shape)
-print(adata.raw.shape)
 adata.write(p.file_path)
 
 
