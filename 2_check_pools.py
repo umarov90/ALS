@@ -4,6 +4,7 @@ from params import Params
 
 p = Params()
 adata = ad.read_h5ad(p.file_path)
+print(len(adata))
 pool_size = 30
 pool_num = 5
 adata.obs['status'] = 'ALS'
@@ -32,6 +33,7 @@ for pool_id in unique_pools:
         print(f"{pool_id} removed {start_n - len(chunks[i])}")
 
 adata = ad.concat(chunks)
+print(len(adata))
 adata.write(p.file_path)
 
 
