@@ -59,7 +59,7 @@ params = Params()
 adata = ad.read_h5ad(params.file_path)
 adata.uns['log1p']["base"] = None
 
-groupby = ["treatment", "status"][1]
+groupby = ["treatment", "status"][0]
 np.unique(adata.obs[groupby])
 if groupby == "treatment":
     vals = ["Ctrl", "Ropi"]
@@ -72,45 +72,46 @@ elif groupby == "status":
     adata = adata[adata.obs["treatment"] != "Ropi"].copy()
     print(len(adata))
 
+# for cluster in adata.obs[louvain_cluster_col].unique():
+#     adata_cluster = adata[adata.obs[louvain_cluster_col] == cluster].copy()
 enr_results = []
-cluster_labels = []
-
-for cluster in adata.obs[louvain_cluster_col].unique():
-    adata_cluster = adata[adata.obs[louvain_cluster_col] == cluster].copy()
-    if len(adata_cluster[adata_cluster.obs[groupby] == vals[0]]) < 100:
+for individual in adata.obs["individual"].unique():
+    adata_i = adata[adata.obs["individual"] == individual].copy()
+    if len(adata_i[adata_i.obs[groupby] == vals[0]]) < 10:
         continue
-    if len(adata_cluster[adata_cluster.obs[groupby] == vals[1]]) < 100:
+    if len(adata_i[adata_i.obs[groupby] == vals[1]]) < 10:
         continue
-    # status_values = adata_cluster.obs['status'].values
+    # status_values = adata_i.obs['status'].values
     # np.random.shuffle(status_values)
-    # adata_cluster.obs['status'] = status_values
-    sc.tl.rank_genes_groups(adata_cluster, groupby, method='wilcoxon', key_added="cluster_de", use_raw=False, tie_correct=True)
-    for key in vals:
-        volcano_plot(adata_cluster, key, f"all_pools_{cluster}_{key}")
+    # adata_i.obs['status'] = status_values
+    sc.tl.rank_genes_groups(adata_i, groupby, method='wilcoxon', key_added="cluster_de", use_raw=False,
+                            tie_correct=True)
+    # for key in vals:
+    #     volcano_plot(adata_i, key, f"all_pools_{0}_{key}")
     try:
         # GSEA
-        gene_rank = sc.get.rank_genes_groups_df(adata_cluster, group=vals[1], key='cluster_de')[['names', 'logfoldchanges', "pvals_adj", "pvals"]]
-        gene_rank = utils.process_gene_rank(gene_rank, adata_cluster)
+        gene_rank = sc.get.rank_genes_groups_df(adata_i, group=vals[1], key='cluster_de')[
+            ['names', 'logfoldchanges', "pvals_adj", "pvals"]]
+        gene_rank = utils.process_gene_rank(gene_rank, adata_i)
         gene_rank['names'] = gene_rank['names'].str.upper()
-        res = gseapy.prerank(rnk=gene_rank, gene_sets='KEGG_2021_Human') # "c2.cp.kegg.v2023.1.Hs.symbols.gmt"
+        res = gseapy.prerank(rnk=gene_rank, gene_sets="c2.cp.kegg.v2023.1.Hs.symbols.gmt")  # 'KEGG_2021_Human'
         # terms = res.res2d.Term
         # folder_out = f"figs/dge/{groupby}/GSEA/gseaplot/"
         # ensure(folder_out)
         # gseapy.gseaplot(figsize=(6, 10), ofname=f"{folder_out}all_pools_{cluster}_{vals[1]}_KEGG.png",
         #                 rank_metric=res.ranking, term=terms[0], **res.results[terms[0]])
-        res.res2d['Cluster'] = cluster
+        res.res2d['Individual'] = individual
         enr_results.append(res.res2d)
-        cluster_labels.append(cluster)
     except Exception as e:
         traceback.print_exc()
-        print(f"{cluster} GSEA not performed")
+        # print(f"{cluster} GSEA not performed")
 # Concatenate the GSEA results for each cluster into a single DataFrame
 enr_combined = pd.concat(enr_results)
 
 # Pivot the DataFrame to prepare for heatmap plotting
-heatmap_data = enr_combined.pivot(index='Term', columns='Cluster', values='NES')
+heatmap_data = enr_combined.pivot(index='Term', columns='Individual', values='NES')
 heatmap_data = heatmap_data.fillna(0)
-top_pathways = heatmap_data.abs().max(axis=1).nlargest(60).index
+top_pathways = heatmap_data.abs().max(axis=1).nlargest(50).index # min p adjust 0.05, NES max at least 1 passing NES 2
 heatmap_data = heatmap_data.loc[top_pathways]
 joblib.dump(heatmap_data, f"hd_{groupby}.p")
 plt.clf()
@@ -134,4 +135,4 @@ plt.tight_layout()
 # Save the figure to a PNG file
 folder_out = f"figs/dge/{groupby}/GSEA/heatmap/"
 ensure(folder_out)
-heatmap.savefig(f'{folder_out}all_pools_{vals[1]}_GSEA.png', dpi=300)
+heatmap.savefig(f'{folder_out}cluster_{0}_{vals[1]}_GSEA.png', dpi=300)

@@ -1,6 +1,6 @@
 import subprocess
 
-python_files = ["5_sub_obsm.py", "6_treatment_sub_obsm.py", "7_clustering.py"]
+python_files = ["7_obsm.py", "8_clustering.py", "9.1_deg_genes_umap.py"]
 
 for file in python_files:
     subprocess.run(["python", file])

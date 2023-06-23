@@ -2,7 +2,7 @@ import re
 import pandas as pd
 import anndata as ad
 import scanpy as sc
-from params import Params
+from utils.params import Params
 
 p = Params()
 chunk_size = 200000
@@ -39,39 +39,5 @@ for index, row in df.iterrows():
     adata.obs_names = row['sample_id'] + '_' + adata.obs_names.str.strip('-1')
     adatas.append(adata)
 adata = ad.concat(adatas)
-print("Concat")
-adata.var['mt'] = adata.var_names.str.startswith('MT-')
-sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
-adata = adata[(adata.obs['total_counts'] > 500) &
-              (adata.obs['n_genes_by_counts'] > 300) &
-              (adata.obs['pct_counts_mt'] < 10), :]
-adata = adata[adata.obs['sample_id'].isin(
-    adata.obs.value_counts('sample_id')[adata.obs.value_counts('sample_id') > 1000].index
-), :]
-print("Filtered")
-# adata_n = ad.read_h5ad(p.file_path)
-# adata_n.obs["treatment"] = adata.obs["treatment"]
-# adata_n.obs["GEM"] = adata.obs["GEM"]
-# adata_n.write(p.file_path)
-print("Starting variable genes")
-sc.pp.highly_variable_genes(
-    adata,
-    n_top_genes=3000,
-    subset=False,
-    flavor="seurat_v3",
-    batch_key="pool", span=0.5
-)
-print("Finished variable genes")
-adata.var.loc[adata.var['mt'], 'highly_variable'] = False
-adata.var.loc[adata.var_names.str.match('^IG[HIKL]'), 'highly_variable'] = False
-adata.raw = adata.copy()
-sc.pp.normalize_total(adata, target_sum=1e4)
-print("Normalized")
-sc.pp.log1p(adata)
-adata = adata[:, adata.var.highly_variable]
-print("PCA starting")
-sc.tl.pca(adata, chunked=True, chunk_size=chunk_size)
-print("PCA finished")
-print("Saving")
+adata.obs["sample"] = adata.obs["day"].astype(str) + "_" + adata.obs["treatment"].astype(str)
 adata.write(p.file_path)
-print("All done")

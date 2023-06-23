@@ -1,7 +1,6 @@
 import anndata as ad
-import matplotlib.pyplot as plt
 import numpy as np
-from params import Params
+from utils.params import Params
 
 p = Params()
 adata = ad.read_h5ad(p.file_path)

@@ -1,7 +1,7 @@
 import numpy as np
 import anndata as ad
 import scanpy as sc
-from params import Params
+from utils.params import Params
 import matplotlib
 matplotlib.use('Agg')
 

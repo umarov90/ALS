@@ -1,6 +1,6 @@
 import gc
 import anndata as ad
-from params import Params
+from utils.params import Params
 
 p = Params()
 adata = ad.read_h5ad(p.file_path)
