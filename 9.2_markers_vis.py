@@ -26,6 +26,9 @@ gene_dict = {}
 for cluster in adata.obs[louvain_cluster_col].unique():
     gene_rank = sc.get.rank_genes_groups_df(adata, group=cluster, key='wilcoxon')[
         ['names', 'logfoldchanges', "pvals_adj", "pvals"]]
+    gl = utils.process_gene_rank2(gene_rank, adata, 100)
+    with open(f"out/{cluster}.tsv", 'w') as file:
+        file.writelines('\n'.join(gl))
     gene_dict[cluster] = utils.process_gene_rank2(gene_rank, adata, 20)
 
 all_values = [value for values in gene_dict.values() for value in values]

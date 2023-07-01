@@ -22,8 +22,8 @@ def get_meta_ad(adata_i, n_SEACells):
     model.construct_kernel_matrix()
     model.initialize_archetypes()
     model.fit(min_iter=10, max_iter=500)
-    SEACell_ad = SEACells.core.summarize_by_SEACell(adata_i, SEACells_label='SEACell', summarize_layer='X')
-    for c in ['individual', 'pool', 'day', 'treatment', 'GEM', 'sample_id', 'status', "gender"]:
+    SEACell_ad = SEACells.core.summarize_by_SEACell(adata_i, SEACells_label='SEACell', summarize_layer='raw')
+    for c in ['individual', 'pool', 'day', 'treatment', 'GEM', 'sample_id', "sample", 'status', "gender"]:
         SEACell_ad.obs[c] = adata_i.obs[c].iloc[0]
     SEACell_ad.obs["old_obs_names"] = ""
     for name in SEACell_ad.obs_names:
@@ -35,7 +35,9 @@ def get_meta_ad(adata_i, n_SEACells):
 
 if __name__ == '__main__':
     SEACell_ads = []
-    adata = ad.read_h5ad(params.folder + "als_1.h5ad")
+    adata = ad.read_h5ad(params.folder + "als.h5ad")
+    # sc.pp.normalize_total(adata, target_sum=1e4)
+    # sc.pp.log1p(adata)
     print(len(adata))
     unique_pools = np.unique(adata.obs['pool'])
     for pool in unique_pools:
@@ -44,8 +46,6 @@ if __name__ == '__main__':
         for sample in unique_samples:
             adata_s = adata_p[adata_p.obs["sample_id"] == sample].copy()
             unique_individuals = np.unique(adata_s.obs['individual'])
-            # sc.pp.normalize_total(adata_s, target_sum=1e4)
-            # sc.pp.log1p(adata_s)
             sc.tl.pca(adata_s)
             for individual in unique_individuals:
                 adata_i = adata_s[adata_s.obs["individual"] == individual].copy()
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
                 n_SEACells = int(math.sqrt(len(adata_i)))
                 if n_SEACells <= 1:
-                    SEACell_ads.append(adata_i)
+                    SEACell_ads.append(adata_i.raw.to_adata())
                     continue
 
                 prefix = f"{pool}_{sample}_{individual}_"
@@ -83,9 +83,10 @@ if __name__ == '__main__':
                     with open("passed.txt", "a+") as file:
                         file.write(prefix + "\t" + str(len(adata_i)) + "\t" + str(int(math.sqrt(len(adata_i)))) + "\t" + str(len(SEACell_ad)) + "\n")
                 else:
-                    SEACell_ads.append(adata_i)
+                    SEACell_ads.append(adata_i.raw.to_adata())
                     with open("failed.tsv", "a+") as file:
                         file.write(prefix + "\t" + str(len(adata_i)) + "\t" + str(int(math.sqrt(len(adata_i)))) + "\n")
 
     meta_ad = ad.concat(SEACell_ads)
+    print(len(meta_ad))
     meta_ad.write(params.folder + "als_meta.h5ad")

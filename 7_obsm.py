@@ -5,9 +5,6 @@ from utils.params import Params
 
 p = Params()
 adata = ad.read_h5ad(p.file_path)
-
-sc.pp.normalize_total(adata, target_sum=1e4)
-sc.pp.log1p(adata)
 sc.tl.pca(adata)
 sc.pp.neighbors(adata, n_neighbors=10, n_pcs=50)
 sc.tl.umap(adata)

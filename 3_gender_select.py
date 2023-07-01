@@ -1,6 +1,7 @@
 import anndata as ad
 import numpy as np
 from utils.params import Params
+import matplotlib.pyplot as plt
 
 p = Params()
 adata = ad.read_h5ad(p.file_path)
@@ -14,7 +15,7 @@ for ind in unique_individuals:
     total_expression = np.sum(adata[indices, :].X)
     normalized_expression[ind] = gene_expression / total_expression
 
-# plt.hist(normalized_expression.values(), bins=20, range=(0, 0.005))
+# plt.hist(normalized_expression.values(), bins=20, range=(0, 0.0005))
 # plt.xlabel("Values")
 # plt.ylabel("Frequency")
 # plt.title("Histogram")
@@ -22,7 +23,7 @@ for ind in unique_individuals:
 
 gender_mapping = {"Male": [], "Female": []}
 for ind, expr in normalized_expression.items():
-    if expr > 0.001:
+    if expr > 0.0001:
         gender_mapping["Male"].append(ind)
     else:
         gender_mapping["Female"].append(ind)
@@ -31,5 +32,6 @@ for ind, expr in normalized_expression.items():
 # split_point = len(sorted_expression_sum) // 2
 # gender_mapping = {"Female": [item[0] for item in sorted_expression_sum[:split_point]],
 #                   "Male": [item[0] for item in sorted_expression_sum[split_point:]]}
+print(gender_mapping)
 adata.obs["gender"] = adata.obs["individual"].map(lambda x: "Male" if x in gender_mapping["Male"] else "Female")
 adata.write(p.file_path)

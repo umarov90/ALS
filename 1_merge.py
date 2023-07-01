@@ -5,7 +5,6 @@ import scanpy as sc
 from utils.params import Params
 
 p = Params()
-chunk_size = 200000
 df = pd.read_csv(f'{p.folder}meta.tsv', sep='\t', index_col=False)
 adatas = []
 for index, row in df.iterrows():
