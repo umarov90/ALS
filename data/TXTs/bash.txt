@@ -1,0 +1,16 @@
+rsync -avz --prune-empty-dirs --include '*/' --include 'filtered_feature_bc_matrix.h5' --exclude '*' --relative 'ramzan@hca-ac.gsc.riken.jp:/home/jonathan/HCAJ/projects/HCAJ0030/ALS_pool/cellranger_output/TF*/outs/' '/Users/ramzan/als/'
+
+rsync -avz --prune-empty-dirs --include '*/' --include 'TFHS*.best' --exclude '*' 'ramzan@hca-ac.gsc.riken.jp:/home/jonathan/HCAJ/projects/HCAJ0030/ALS_pool/demuxlet/TF*/' '/Users/ramzan/als/'
+rsync -avz --prune-empty-dirs --include '*/' --include 'TFHS*.loom' --exclude '*' 'ramzan@hca-ac.gsc.riken.jp:/home/ramzan/ALS/cellranger_output/TF*/' '/Users/ramzan/als/'
+rsync -avz --prune-empty-dirs --include '*/' --include 'raw_feature_bc_matrix.h5' --exclude '*' 'ramzan@d7-work:/osc-fs_home/ramzan/ALS/cellranger_output/' '/Users/ramzan/als/raw_counts/'
+
+scp als_meta.h5ad ramzan@hcaj-app01.gsc.riken.jp:/data/cellxgene_data/HCAJ0030/ALS/
+
+ln -s -r /home/jonathan/HCAJ/projects/HCAJ0030/ALS_pool/cellranger_output ./cellranger_output
+velocyto run10x -m hg38_rmsk.gtf 1/TFHS000240 refdata-gex-GRCh38-2020-A/genes/genes.gtf -o sample1.loom
+
+scp als_vis.h5ad ramzan@hcaj-app01.gsc.riken.jp:/data/cellxgene_data/HCAJ0030/ALS/
+
+ssh ramzan@hca-ac.gsc.riken.jp
+
+cd /home/jonathan/scratch/ALS/cellranger_output && find . -type d -exec mkdir -p -- /osc-fs_home/ramzan/ALS/cellranger_output/{} \;
