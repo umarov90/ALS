@@ -19,7 +19,7 @@ params = Params()
 adata = ad.read_h5ad(params.file_path)
 adata.uns['log1p']["base"] = None
 
-groupby = ["treatment", "status"][0]
+groupby = ["treatment", "status"][1]
 np.unique(adata.obs[groupby])
 if groupby == "treatment":
     vals = ["Ctrl", "Ropi"]
@@ -37,13 +37,12 @@ for cluster in adata.obs[cluster_col].unique():
     print(cluster)
     adata_i = adata[adata.obs[cluster_col] == cluster].copy()
     try:
-        sc.tl.rank_genes_groups(adata_i, groupby, method='wilcoxon', key_added="cluster_de", use_raw=False,
-                                tie_correct=True)
+        sc.tl.rank_genes_groups(adata_i, groupby, method='wilcoxon', key_added="cluster_de", use_raw=False, tie_correct=True)
         # GSEA
-        gene_rank = sc.get.rank_genes_groups_df(adata_i, group=vals[1], key='cluster_de')[
-            ['names', 'logfoldchanges', "pvals_adj", "pvals"]]
-        gene_rank = cm.process_gene_rank(gene_rank, adata_i)
+        gene_rank = sc.get.rank_genes_groups_df(adata_i, group=vals[1], key='cluster_de')
+        gene_rank = cm.process_gene_rank2(gene_rank, adata_i)
         gene_rank['names'] = gene_rank['names'].str.upper()
+        gene_rank = gene_rank.loc[:, ["names", "scores"]]
         res = gseapy.prerank(rnk=gene_rank, gene_sets="../data/GMTs/c2.cp.kegg.v2023.1.Hs.symbols.gmt")  # 'KEGG_2021_Human'
         # terms = res.res2d.Term
         # folder_out = f"figs/dge/{groupby}/GSEA/gseaplot/"
@@ -83,4 +82,4 @@ heatmap.ax_heatmap.set_title('GSEA Heatmap ')
 plt.setp(heatmap.ax_heatmap.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor')
 plt.tight_layout()
 # Save the figure to a PNG file
-heatmap.savefig(f'Celltype_GSEA_heatmap.png', dpi=300)
+heatmap.savefig(f'Celltype_{groupby}_GSEA_heatmap.pdf', dpi=300)

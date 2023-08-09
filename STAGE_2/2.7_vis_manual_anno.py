@@ -14,14 +14,18 @@ tag = "manual"
 for lvl in range(3):
     df = pd.DataFrame(columns=['clusters', 'names', 'scores'])
     column_name_level = "manual_anno_L" + str(lvl)
-    column_name_marker = column_name_level + "_marker"
     cluster_list = adata.obs[column_name_level].unique().categories.tolist()
     adata_lvl = adata[adata.obs[column_name_level].isin(cluster_list)]
     lvl_folder = f"{params.folder}markers/L{lvl}/"
     for cluster in cluster_list:
-        markers = adata_lvl.obs.loc[adata_lvl.obs[column_name_level] == cluster, column_name_marker].iloc[0]
+        # all_markers = []
+        # for nl in range(3):
+        markers = adata_lvl.obs.loc[adata_lvl.obs[column_name_level] == cluster,
+                                    "manual_anno_L" + str(lvl) + "_marker"].iloc[0]
         markers = markers[markers.index("-") + 1:]
         markers = markers.split(".")
+        # all_markers.extend(markers)
+        # markers = all_markers
         genes = []
         for m in markers:
             gene = m.split("_")[1]

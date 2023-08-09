@@ -18,7 +18,7 @@ pdf_pages = []
 sub_info = "day"
 
 for info_val in ["D4", "D7", "D14"]:
-    original_path = f"{p.folder}figures/scvelo__day_{info_val}.png"
+    original_path = f"{p.folder}figures/scvelo_day_{info_val}.png"
     # Load the images using PIL
     original_image = Image.open(original_path)
 

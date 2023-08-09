@@ -1,5 +1,5 @@
-import multiprocessing
-multiprocessing.set_start_method("fork")
+# import multiprocessing
+# multiprocessing.set_start_method("fork")
 import joblib
 import scvelo as scv
 from params import Params
@@ -17,12 +17,18 @@ if __name__ == '__main__':
     color_column = "manual_anno_L0"
     custom_palette = joblib.load(p.folder + color_column + "_palette.p")
     adata = ad.read_h5ad(p.folder + "ad_files/als_filtered.h5ad")
+    adata = adata[adata.obs["day"] != "D0"]
+    del adata.raw
     adata.obsm["X_pca"] = adata.obsm["X_pca_harmony"].copy()
     del adata.obsm["X_pca_harmony"]
-    adata = cm.prepare_adata_layers(adata)
-    print("Layers copied")
-    joblib.dump(adata.layers, p.folder + "layers_s.p")
-    print("Layers dumped")
+    # adata = cm.prepare_adata_layers(adata)
+    # print("Layers copied")
+    # joblib.dump(adata.layers, p.folder + "layers_s.p")
+    # print("Layers dumped")
+    print("Layers loading")
+    adata.layers = joblib.load(p.folder + "layers_s.p")
+    print("Layers loaded")
+
     groups = pd.read_csv(p.folder + "meta_grouping.csv")
     dfs = []
     for index, row in groups.iterrows():
@@ -55,7 +61,8 @@ if __name__ == '__main__':
     print("moments")
     # sc.tl.pca(adata, use_highly_variable=True, n_comps=30)
     scv.pp.moments(adata)
-    scv.tl.velocity(adata)
-    scv.tl.velocity_graph(adata)
+    scv.tl.velocity(adata, use_highly_variable=True)
+    scv.tl.velocity_graph(adata, approx=True)
     scv.pl.velocity_embedding_stream(adata, basis='X_umap_harmony', color=color_column, palette=custom_palette,
                                      save="sc_ALL.png", dpi=300)
+    adata.write(p.folder + "als_sc_velo.h5ad")

@@ -29,6 +29,7 @@ if __name__ == '__main__':
                                  epsilon_cluster=float('-inf'), epsilon_harmony=float('-inf'))
         sc.pp.neighbors(adata_d, n_neighbors=10, n_pcs=50, use_rep="X_pca_harmony")
         sc.tl.umap(adata_d)
+        sc.pl.umap(adata_d)
         adata.obsm[f'X_{sub_info}_sub_umap'][adata.obs[sub_info] == info_val] = adata_d.obsm['X_umap']
 
     adata.layers.clear()

@@ -60,22 +60,20 @@ def process_gene_rank(gene_rank, adata, n=-1):
         return gene_rank
 
 
-def process_gene_rank2(gene_rank, adata_cluster, cluster, n=-1):
-    gene_rank = gene_rank[gene_rank['pvals_adj'] <= 0.05]
+def process_gene_rank2(gene_rank, adata_cluster, n=-1, filter_low=True):
+    if filter_low:
+        lowly_expressed = adata_cluster.var.index[np.ravel(adata_cluster.X.mean(axis=0)) < 0.05]
+        gene_rank = gene_rank[gene_rank['pvals_adj'] <= 0.05]
+        sc.pp.calculate_qc_metrics(adata_cluster, percent_top=None, log1p=False, inplace=True)
+        gene_rank = gene_rank[gene_rank['names'].isin(adata_cluster.var_names[adata_cluster.var.n_cells_by_counts > len(adata_cluster) / 3])]
+        gene_rank = gene_rank[~gene_rank['names'].isin(lowly_expressed)]
 
-    sc.pp.calculate_qc_metrics(adata_cluster, percent_top=None, log1p=False, inplace=True)
-    gene_rank = gene_rank[gene_rank['names'].isin(adata_cluster.var_names[adata_cluster.var.n_cells_by_counts > len(adata_cluster) / 2])]
-
-    lowly_expressed = adata_cluster.var.index[np.ravel(adata_cluster.X.mean(axis=0)) < 0.05]
     exclude_genes = pd.read_csv(params.folder + "chrY_genes.csv")["gene"].tolist()
     exclude_genes.append("XIST")
     exclude_genes.append("MYC")
-
-    gene_rank = gene_rank[~gene_rank['names'].isin(lowly_expressed)]
     gene_rank = gene_rank[~gene_rank['names'].isin(exclude_genes)]
     gene_rank = gene_rank[~gene_rank['names'].str.startswith("MT")]
     gene_rank["expression"] = np.ravel(adata_cluster[:, gene_rank["names"].tolist()].X.mean(axis=0))
-
     # gene_rank["scores"] = -np.log(gene_rank["pvals"].astype("float"))
     # gene_rank['scores'] *= np.sign(gene_rank['logfoldchanges'])
     # gene_rank['scores'] = gene_rank['logfoldchanges']
@@ -112,26 +110,20 @@ def copy_obsm(adata, adata_cluster, param1, param2):
     print(f"Big one {len(adata)} Small one {len(adata_cluster)} Copied {n}")
 
 
-def volcano_plot(adata, group_key, title="", save=""):
+def volcano_plot(rank_df, title="", save=""):
     FDR = 0.01
     LOG_FOLD_CHANGE = 1.0
-    result = sc.get.rank_genes_groups_df(adata, group=group_key, key="rank")
 
-    exclude_genes = pd.read_csv(params.folder + "chrY_genes.csv")["gene"].tolist()
-    exclude_genes.append("XIST")
-    exclude_genes.append("MYC")
-    result = result[~result['names'].isin(exclude_genes)]
+    rank_df["-logQ"] = -np.log(rank_df["pvals"].astype("float"))
 
-    result["-logQ"] = -np.log(result["pvals"].astype("float"))
+    max_non_inf_score = rank_df.loc[rank_df['-logQ'] != np.inf, 'scores'].max()
+    max_non_inf_logQ = rank_df.loc[rank_df['-logQ'] != np.inf, '-logQ'].max()
+    rank_df['diff_score'] = np.abs(rank_df['scores'] / max_non_inf_score)
+    rank_df.loc[rank_df['-logQ'] == np.inf, '-logQ'] = \
+        max_non_inf_logQ * rank_df.loc[rank_df['-logQ'] == np.inf, 'diff_score']
 
-    max_non_inf_score = result.loc[result['-logQ'] != np.inf, 'scores'].max()
-    max_non_inf_logQ = result.loc[result['-logQ'] != np.inf, '-logQ'].max()
-    result['diff_score'] = np.abs(result['scores'] / max_non_inf_score)
-    result.loc[result['-logQ'] == np.inf, '-logQ'] = \
-        max_non_inf_logQ * result.loc[result['-logQ'] == np.inf, 'diff_score']
-
-    lowqval_de = result.loc[abs(result["logfoldchanges"]) > LOG_FOLD_CHANGE]
-    other_de = result.loc[abs(result["logfoldchanges"]) <= LOG_FOLD_CHANGE]
+    lowqval_de = rank_df.loc[abs(rank_df["logfoldchanges"]) > LOG_FOLD_CHANGE]
+    other_de = rank_df.loc[abs(rank_df["logfoldchanges"]) <= LOG_FOLD_CHANGE]
 
     fig, ax = plt.subplots()
     sns.regplot(
