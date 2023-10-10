@@ -7,7 +7,7 @@ p = Params()
 adata = ad.read_h5ad(p.file_path)
 del adata.raw
 adata.layers.clear()
-# adata = adata[:, adata.var.highly_variable]
+adata = adata[:, adata.var.highly_variable]
 drop_columns = []
 for column in adata.obs.columns:
     if adata.obs[column].nunique() == 1:
@@ -16,4 +16,4 @@ for column in adata.obs.columns:
         drop_columns.append(column)
 adata.obs.drop(drop_columns, axis=1, inplace=True)
 # {datetime.now().strftime('%d.%m.%y')}
-adata.write(p.folder + p.file_name.replace(".h5ad", "_aug9_vis.h5ad"))
+adata.write(p.folder + p.file_name.replace(".h5ad", "_sep6_vis2.h5ad"))

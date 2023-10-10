@@ -15,4 +15,4 @@ ssh ramzan@hca-ac.gsc.riken.jp
 
 cd /home/jonathan/scratch/ALS/cellranger_output && find . -type d -exec mkdir -p -- /osc-fs_home/ramzan/ALS/cellranger_output/{} \;
 
-scp als_meta_vis_jul18_2.h5ad ramzan@hcaj-app01.gsc.riken.jp:/data/cellxgene_data/HCAJ0030/ALS/
+scp als_meta_sep6_vis.h5ad ramzan@hcaj-app01.gsc.riken.jp:/data/cellxgene_data/HCAJ0030/ALS/

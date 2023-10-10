@@ -19,6 +19,5 @@ cell_cycle_genes = [x for x in cell_cycle_genes if x in adata.var_names]
 print(len(cell_cycle_genes))
 
 sc.tl.score_genes_cell_cycle(adata, s_genes=s_genes, g2m_genes=g2m_genes)
-sc.pl.violin(adata, ['S_score', 'G2M_score'],
-             jitter=0.4, groupby = 'sample_id', rotation=45)
+sc.pl.violin(adata, ['S_score', 'G2M_score'], jitter=0.4, groupby='sample_id', rotation=45)
 cm.safe_save(adata, p.folder + "als_filtered.h5ad")

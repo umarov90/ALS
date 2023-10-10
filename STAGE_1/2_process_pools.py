@@ -1,3 +1,4 @@
+# Finding wrong individual labels based on pool
 import gc
 import anndata as ad
 import utils.common as cm
@@ -34,7 +35,8 @@ for pool_id in unique_pools:
     valid_individuals = pools[pool_id[-1]] + pools[pool_id[-2]]
     adata_p = adata[adata.obs["pool"] == pool_id].copy()
     print(adata_p.obs['wrong_pool'].value_counts())
-    adata_p.obs['wrong_pool'][(adata_p.obs['pool'] != pool_id) | (adata_p.obs['individual'].isin(valid_individuals))] = False
+    # (adata_p.obs['pool'] != pool_id) |
+    adata_p.obs['wrong_pool'][adata_p.obs['individual'].isin(valid_individuals)] = False
     print(adata_p.obs['wrong_pool'].value_counts())
     adatas.append(adata_p)
 

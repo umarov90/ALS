@@ -1,6 +1,25 @@
-partitioning samples like edgeR (regress out this effect)
-
-UMAP using ALS deg only (for ALS only) per louvain cluster
-
 CellBender
-DoubletFinder
+PAGA
+Differential abundance of cells on UMAP (milo)
+
+fraction of an indivudual in each cell type
+Done
+
+Make script to prove differential expression genes between ALS/Healthy by shuffle
+Done but does not solve the issue
+
+check for PCs which can discriminate between ALS/control (logistic regression)
+Done
+
+Show different subgrouops
+separate ALS/Control
+Try to highlight difference between treatment and control (D7 vs D14)
+Features associated with disease  (transcription or diff efficiency)
+
+individuals might have trajectory differences (maybe can be associated with genotype)
+
+Functional enrichment of C2 genes did not reach statistical significance
+SOD1
+D14 less mMN because they died? Hard to draw conclusions because did not check for dead cells?
+
+Send gender to sanity check.

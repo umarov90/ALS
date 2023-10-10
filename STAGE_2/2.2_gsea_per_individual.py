@@ -84,8 +84,8 @@ heatmap.ax_heatmap.set_facecolor('white')
 plt.setp(heatmap.ax_heatmap.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor')
 
 blue_patch = plt.Line2D([0], [0], marker='o', color='w', label='Male', markerfacecolor='blue', markersize=10)
-red_patch = plt.Line2D([0], [0], marker='o', color='w', label='Female', markerfacecolor='green', markersize=10)
-plt.legend(handles=[blue_patch, red_patch], loc='lower left')
+green_patch = plt.Line2D([0], [0], marker='o', color='w', label='Female', markerfacecolor='green', markersize=10)
+plt.legend(handles=[blue_patch, green_patch], loc='lower left')
 
 plt.tight_layout()
 # Save the figure to a PNG file
